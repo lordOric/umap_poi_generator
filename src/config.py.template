@@ -1,0 +1,7 @@
+# OpenWeatherMap API KEY, used for geocoding the towns into coordinates
+# You have to create an account, but then API use is free for moderate use
+# See https://openweathermap.org/price
+API_KEY='YOUR API KEY HERE'
+
+# The country used in geocoding process
+COUNTRY='FR'
