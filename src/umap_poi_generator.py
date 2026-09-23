@@ -4,8 +4,10 @@ import requests
 import sys
 import json
 import config
+from functools import lru_cache
 
-
+# Caching to avoid calling the API too much
+@lru_cache
 def geocoding(city):
     r = requests.get(f'http://api.openweathermap.org/geo/1.0/direct?q={city},,{config.COUNTRY}&limit=5&appid={config.API_KEY}')
     if r.status_code != 200:
@@ -20,6 +22,7 @@ def geocoding(city):
     # elif len(result) > 1:
     #     print(f'Warn: to much result for city {city}: { ', '.join([ x['name'] for x in result ]) }')
     else:
+        print(result)
         return ( result[0]['lat'], result[0]['lon'] )
     return
 
@@ -40,7 +43,7 @@ except Exception as e:
 
 # Build the output
 features = list()
-for name, city in data:
+for name, city, area in data:
     coordinates = geocoding(city)
     if coordinates:
         features.append( {
