@@ -22,7 +22,6 @@ def geocoding(city):
     # elif len(result) > 1:
     #     print(f'Warn: to much result for city {city}: { ', '.join([ x['name'] for x in result ]) }')
     else:
-        print(result)
         return ( result[0]['lat'], result[0]['lon'] )
     return
 
@@ -41,21 +40,29 @@ except Exception as e:
     print(f'Unable to read input: {e}. Abort !')
     exit(-1)
 
-# Build the output
-features = list()
+# Build a dict position => names
+results = dict()
 for name, city, area in data:
     coordinates = geocoding(city)
     if coordinates:
-        features.append( {
-           "type": "Feature",
-           "geometry": {
-               "type": "Point",
-               "coordinates": [ coordinates[1], coordinates[0] ],
-           },
-           "properties": {
-               "name": name,
-           }
-       })
+        position = ( coordinates[1], coordinates[0] )
+        if position not in results:
+            results[position] = list()
+        results[position].append(name)
+
+# Build the results
+features = list()
+for position, names in results.items():
+    features.append( {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": position,
+        },
+        "properties": {
+            "name": ', '.join(names),
+        }
+    } )
 
 # Write the output
 output = {
