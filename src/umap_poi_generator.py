@@ -8,19 +8,22 @@ from functools import lru_cache
 
 # Caching to avoid calling the API too much
 @lru_cache
-def geocoding(city):
-    r = requests.get(f'http://api.openweathermap.org/geo/1.0/direct?q={city},,{config.COUNTRY}&limit=5&appid={config.API_KEY}')
+def geocoding(city, state):
+    r = requests.get(f'http://api.openweathermap.org/geo/1.0/direct?q={city},{state},{config.COUNTRY}&limit=5&appid={config.API_KEY}')
     if r.status_code != 200:
         print(f'Err: bad status code from geocoding server ({r.status_code}).')
         exit(-1)
     result = r.json()
+
+    # For now, we only return the first occurrence.
+    # Sometimes, the same city has two entries. :/
+    if len(result) > 1:
+        # print(json.dumps(result))
+        print(f'Warn: to much result for city {city}: { ', '.join([ f'{x['name']} ({x['state']})' for x in result ]) }')
+
     if len(result) == 0:
         print(f'Warn: city {city} not found.')
         return None
-    # For now, we only return the first occurrence.
-    # Sometimes, the same city has two entries. :/
-    # elif len(result) > 1:
-    #     print(f'Warn: to much result for city {city}: { ', '.join([ x['name'] for x in result ]) }')
     else:
         return ( result[0]['lat'], result[0]['lon'] )
     return
@@ -42,8 +45,8 @@ except Exception as e:
 
 # Build a dict position => names
 results = dict()
-for name, city, area in data:
-    coordinates = geocoding(city)
+for name, city, state in data:
+    coordinates = geocoding(city, state)
     if coordinates:
         position = ( coordinates[1], coordinates[0] )
         if position not in results:
